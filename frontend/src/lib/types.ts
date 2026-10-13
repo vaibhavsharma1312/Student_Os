@@ -1,0 +1,11 @@
+export type Skill = { id: number; name: string };
+export type User = { id: number; name: string; email: string; role?: string; skills?: Skill[] };
+export type Profile = { id?: number; bio?: string; college?: string; branch?: string; githubUrl?: string; linkedinUrl?: string; user?: User };
+export type Project = { id: number; title: string; description: string; owner?: User; requiredSkills?: Skill[] };
+export type Opportunity = { id: number; title: string; type: string; description: string; link?: string; postedBy?: User; requiredSkills?: Skill[] };
+export type Resource = { id: number; title: string; type: string; description: string; link?: string; postedBy?: User };
+export type JoinRequest = { id: number; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; project?: Project; user?: User };
+export type ProjectMatch = { projectId: number; projectTitle: string; matchPercentage: number };
+export type OpportunityMatch = { opportunityId: number; opportunityTitle: string; type: string; matchPercentage: number };
+export type SkillGap = { projectId: number; projectTitle: string; matchPercentage: number; missingSkills: string[] };
+export type TeamGap = { projectId: number; projectTitle: string; teamSize: number; coveragePercentage: number; missingSkills: string[] };
