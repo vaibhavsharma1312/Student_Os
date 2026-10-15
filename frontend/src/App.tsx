@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, BookOpen, BriefcaseBusiness, FolderKanban, LayoutDashboard, LogOut, Menu, Settings, Sparkles, UserRound, X } from 'lucide-react';
+import { ArrowUpRight, LogOut, Menu, Sparkles, X } from 'lucide-react';
 import { Link, Navigate, NavLink, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AuthPage, DashboardPage } from './pages/AuthDashboard';
 import { ProjectsPage } from './pages/Projects';
@@ -12,26 +12,27 @@ import { Profile } from './lib/types';
 import { Notice } from './components/ui';
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/projects', label: 'Projects', icon: FolderKanban },
-  { to: '/matches', label: 'Matches', icon: Sparkles },
-  { to: '/opportunities', label: 'Opportunities', icon: BriefcaseBusiness },
-  { to: '/resources', label: 'Resources', icon: BookOpen },
+  { to: '/dashboard', label: 'Dashboard', emoji: '🏠' },
+  { to: '/profile', label: 'Profile', emoji: '👤' },
+  { to: '/resources', label: 'Resources', emoji: '📚' },
+  { to: '/projects', label: 'Projects', emoji: '💻' },
+  { to: '/opportunities', label: 'Opportunities', emoji: '🚀' },
+  { to: '/matches', label: 'Matches', emoji: '✨' },
 ];
 
 function AppShell({ profile, onSignOut }: { profile: Profile | null; onSignOut: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const pageTitle = navItems.find(item => item.to === location.pathname)?.label || (location.pathname === '/profile' ? 'Profile' : 'Settings');
+  const pageTitle = navItems.find(item => item.to === location.pathname)?.label || 'Settings';
   const initials = profile?.user?.name?.split(' ').map(part => part[0]).slice(0, 2).join('') || 'S';
   return <div className="app-frame">
     {menuOpen && <button className="mobile-scrim" onClick={() => setMenuOpen(false)} aria-label="Close navigation"/>}
     <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
-      <Link to="/dashboard" className="brand"><span className="brand-symbol"><i/><i/><i/></span><span>student<span className="brand-weight">os</span></span></Link>
-      <div className="sidebar-label">YOUR WORKSPACE</div>
-      <nav className="main-nav">{navItems.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}><Icon size={18}/><span>{label}</span>{to === '/matches' && <span className="nav-dot"/>}</NavLink>)}</nav>
+      <Link to="/dashboard" className="brand"><span className="brand-emoji">🎓</span><span>Student<span className="brand-weight">OS</span></span></Link>
+      <div className="sidebar-label">WORKSPACE</div>
+      <nav className="main-nav">{navItems.map(({ to, label, emoji }) => <NavLink key={to} to={to} onClick={() => setMenuOpen(false)} className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}><span className="nav-emoji">{emoji}</span><span>{label}</span>{to === '/matches' && <span className="nav-dot"/>}</NavLink>)}</nav>
       <div className="sidebar-label sidebar-label-spaced">ACCOUNT</div>
-      <nav className="main-nav"><NavLink to="/profile" onClick={() => setMenuOpen(false)} className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}><UserRound size={18}/><span>Profile</span></NavLink><NavLink to="/settings" onClick={() => setMenuOpen(false)} className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}><Settings size={18}/><span>Settings</span></NavLink></nav>
+      <nav className="main-nav"><NavLink to="/settings" onClick={() => setMenuOpen(false)} className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}><span className="nav-emoji">⚙️</span><span>Settings</span></NavLink></nav>
       <div className="sidebar-bottom"><div className="sidebar-prompt"><span className="prompt-spark"><Sparkles size={15}/></span><strong>Ideas grow here.</strong><small>Find the people who help yours take shape.</small><Link to="/projects" onClick={() => setMenuOpen(false)}>Explore projects <ArrowUpRight size={13}/></Link></div><div className="user-chip"><span className="avatar">{initials}</span><span className="user-chip-copy"><strong>{profile?.user?.name || 'Student'}</strong><small>{profile?.user?.email || 'Campus member'}</small></span><button onClick={onSignOut} aria-label="Sign out" title="Sign out"><LogOut size={16}/></button></div><div className="sidebar-version">STUDENT OS <span>·</span> BUILD SOMETHING GOOD</div></div>
     </aside>
     <main className="main-area"><header className="topbar"><button className="mobile-menu icon-button" onClick={() => setMenuOpen(value => !value)} aria-label={menuOpen ? 'Close menu' : 'Open menu'}>{menuOpen ? <X size={19}/> : <Menu size={19}/>}</button><div className="breadcrumbs"><span>Student OS</span><span className="breadcrumb-slash">/</span><strong>{pageTitle}</strong></div><div className="topbar-right"><span className="system-status"><i/>Workspace active</span><span className="avatar topbar-avatar">{initials}</span></div></header><div className="content-wrap"><Outlet/></div><footer className="app-footer"><span>STUDENT OS</span><span>Find your people. Build what matters.</span><span>Made for the next generation of makers.</span></footer></main>
