@@ -1,10 +1,28 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { ArrowDownRight, ArrowRight, BarChart3, BookOpen, BriefcaseBusiness, Compass, FolderKanban, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, getApiBaseUrl, isNotFoundError, saveApiBaseUrl, saveToken } from '../lib/api';
 import { Opportunity, Profile, Project, ProjectMatch } from '../lib/types';
 import { Field, Notice, Spinner } from '../components/ui';
 import { LiveBackground } from '../components/LiveBackground';
+
+/** Counts up from 0 to `value` once; respects reduced-motion. */
+function CountUp({ value }: { value: number }) {
+  const [n, setN] = useState(0);
+  const raf = useRef(0);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || value <= 0) { setN(value); return; }
+    const start = performance.now(), dur = 900;
+    const tick = (t: number) => {
+      const p = Math.min((t - start) / dur, 1);
+      setN(Math.round(value * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf.current);
+  }, [value]);
+  return <>{n}</>;
+}
 
 export function AuthPage({ mode, onSignedIn }: { mode: 'login' | 'register'; onSignedIn: () => void }) {
   const navigate = useNavigate();
@@ -113,10 +131,10 @@ export function DashboardPage() {
     <h2 className="workspace-title">Your Workspace</h2>
     <div className="workspace-grid">{workspaceCards.map((card, index) => <Link to={card.to} className="workspace-card" key={card.title}><span className={`workspace-icon wi-${index + 1}`}>{card.emoji}</span><h3>{card.title}</h3><p>{card.text}</p><span className="workspace-open">Open section →</span></Link>)}</div>
     <div className="stat-strip">
-      <div className="stat-cell"><span className="stat-icon icon-cobalt"><FolderKanban size={18} /></span><div><strong>{projects.length}</strong><span>Open projects</span></div><Link to="/projects" aria-label="Browse projects"><ArrowRight size={16} /></Link></div>
-      <div className="stat-cell"><span className="stat-icon icon-lime"><Sparkles size={18} /></span><div><strong>{skillCount}</strong><span>Your skills</span></div><Link to="/profile" aria-label="Edit your skills"><ArrowRight size={16} /></Link></div>
-      <div className="stat-cell"><span className="stat-icon icon-peach"><BriefcaseBusiness size={18} /></span><div><strong>{opportunities.length}</strong><span>Opportunities</span></div><Link to="/opportunities" aria-label="Browse opportunities"><ArrowRight size={16} /></Link></div>
-      <div className="stat-cell"><span className="stat-icon icon-ink"><BarChart3 size={18} /></span><div><strong>{matches.length}</strong><span>Project matches</span></div><Link to="/matches" aria-label="See matches"><ArrowRight size={16} /></Link></div>
+      <div className="stat-cell"><span className="stat-icon icon-cobalt"><FolderKanban size={18} /></span><div><strong><CountUp value={projects.length} /></strong><span>Open projects</span></div><Link to="/projects" aria-label="Browse projects"><ArrowRight size={16} /></Link></div>
+      <div className="stat-cell"><span className="stat-icon icon-lime"><Sparkles size={18} /></span><div><strong><CountUp value={skillCount} /></strong><span>Your skills</span></div><Link to="/profile" aria-label="Edit your skills"><ArrowRight size={16} /></Link></div>
+      <div className="stat-cell"><span className="stat-icon icon-peach"><BriefcaseBusiness size={18} /></span><div><strong><CountUp value={opportunities.length} /></strong><span>Opportunities</span></div><Link to="/opportunities" aria-label="Browse opportunities"><ArrowRight size={16} /></Link></div>
+      <div className="stat-cell"><span className="stat-icon icon-ink"><BarChart3 size={18} /></span><div><strong><CountUp value={matches.length} /></strong><span>Project matches</span></div><Link to="/matches" aria-label="See matches"><ArrowRight size={16} /></Link></div>
     </div>
     <section className="panel latest-projects"><div className="panel-top"><div><span className="eyebrow">FRESH ON CAMPUS</span><h2>Latest projects</h2></div><Link to="/projects" className="text-link">All projects <ArrowRight size={15} /></Link></div>{latest.length ? <div className="latest-grid">{latest.map(p => <Link to="/projects" className="latest-card" key={p.id}><span className="latest-owner"><i>{(p.owner?.name || 'S').charAt(0).toUpperCase()}</i>{p.owner?.name || 'Student'}</span><strong>{p.title}</strong><p>{p.description}</p><div className="latest-skills">{(p.requiredSkills || []).slice(0, 3).map(s => <span className="tag" key={s.id}>{s.name}</span>)}</div></Link>)}</div> : <div className="inline-empty"><Compass size={20} /><span>No projects yet. Be the first to share one.</span><Link to="/projects">Add project</Link></div>}</section>
     <div className="dashboard-columns"><section className="panel panel-featured"><div className="panel-top"><div><span className="eyebrow">A GOOD FIT FOR YOU</span><h2>Project matches</h2></div><Link to="/matches" className="text-link">All matches <ArrowRight size={15} /></Link></div>{topMatches.length ? <div className="match-list">{topMatches.map((match, index) => <Link to="/matches" className="match-row" key={match.projectId}><span className={`match-rank rank-${index + 1}`}>0{index + 1}</span><div className="match-meta"><strong>{match.projectTitle}</strong><span>{match.matchPercentage}% skill alignment</span></div><div className="match-meter"><span style={{ width: `${Math.max(4, Math.min(100, match.matchPercentage))}%` }} /></div><ArrowRight size={16} className="row-arrow" /></Link>)}</div> : <div className="inline-empty"><Compass size={20} /><span>Add skills to your profile to reveal your best project matches.</span><Link to="/profile">Set up profile</Link></div>}</section>
